@@ -12,7 +12,8 @@ def initialize_database():
             relative_path TEXT NOT NULL,
             size INTEGER,
             modified_time TEXT,
-            extension TEXT
+            extension TEXT,
+            file_hash TEXT
         )
     """)
 
@@ -33,15 +34,21 @@ def save_files(files_data):
                 relative_path,
                 size,
                 modified_time,
-                extension
+                extension,
+                file_hash
             )
-            VALUES (?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?)
         """, (
             file["relative_path"],
             file["size"],
             file["modified_time"],
-            file["extension"]
+            file["extension"],
+            file["file_hash"]
         ))
+
+    connection.commit()
+    connection.close()
+
 
 def get_files_count():
     connection = sqlite3.connect("data/app.db")
@@ -56,5 +63,36 @@ def get_files_count():
 
     return count
 
-    connection.commit()
+def find_duplicates():
+    connection = sqlite3.connect("data/app.db")
+
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT file_hash
+        FROM files
+        GROUP BY file_hash
+        HAVING COUNT(*) > 1
+    """)
+
+    duplicate_hashes = cursor.fetchall()
+
+    result = []
+
+    for duplicate_hash in duplicate_hashes:
+        cursor.execute("""
+            SELECT relative_path
+            FROM files
+            WHERE file_hash = ?
+        """, (duplicate_hash[0],))
+
+        files = cursor.fetchall()
+
+        result.append({
+            "hash": duplicate_hash[0],
+            "files": files
+        })
+
     connection.close()
+
+    return result

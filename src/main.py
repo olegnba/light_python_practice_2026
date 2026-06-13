@@ -3,6 +3,7 @@ import os
 
 from db import initialize_database, save_files, get_files_count
 from scanner import scan_folder
+from db import find_duplicates
 
 
 def main():
@@ -32,6 +33,24 @@ def main():
     save_files(files)
 
     count = get_files_count()
+
+    duplicates = find_duplicates()
+
+    print()
+    print("Дубликаты:")
+
+    if not duplicates:
+     print("Дубликаты не найдены.")
+    else:
+        for duplicate in duplicates:
+             print()
+             print("Хэш:")
+             print(duplicate["hash"])
+
+             print("Файлы:")
+
+             for file in duplicate["files"]:
+                print(file[0])
 
     print(f"В базе данных записей: {count}")
 

@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+from hash_utils import calculate_file_hash
 
 IGNORE_DIRS = {
     ".git",
@@ -42,11 +43,14 @@ def scan_folder(folder_path, extension_filter=None):
                 if extension != extension_filter:
                     continue
 
+            file_hash = calculate_file_hash(full_path)
+
             files_data.append({
                 "relative_path": relative_path,
                 "size": size,
                 "modified_time": modified_time,
-                "extension": extension
+                "extension": extension,
+                "file_hash": file_hash
             })
 
     return files_data

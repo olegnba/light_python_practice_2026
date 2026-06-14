@@ -1,9 +1,9 @@
 import sqlite3
+from datetime import datetime
 
 
 def initialize_database():
     connection = sqlite3.connect("data/app.db")
-
     cursor = connection.cursor()
 
     cursor.execute("""
@@ -17,13 +17,24 @@ def initialize_database():
         )
     """)
 
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS backup_checks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            check_time TEXT,
+            source_count INTEGER,
+            backup_count INTEGER,
+            missing_count INTEGER,
+            extra_count INTEGER,
+            changed_count INTEGER
+        )
+    """)
+
     connection.commit()
     connection.close()
 
 
 def save_files(files_data):
     connection = sqlite3.connect("data/app.db")
-
     cursor = connection.cursor()
 
     cursor.execute("DELETE FROM files")
@@ -52,7 +63,6 @@ def save_files(files_data):
 
 def get_files_count():
     connection = sqlite3.connect("data/app.db")
-
     cursor = connection.cursor()
 
     cursor.execute("SELECT COUNT(*) FROM files")
@@ -63,9 +73,9 @@ def get_files_count():
 
     return count
 
+
 def find_duplicates():
     connection = sqlite3.connect("data/app.db")
-
     cursor = connection.cursor()
 
     cursor.execute("""
@@ -96,3 +106,52 @@ def find_duplicates():
     connection.close()
 
     return result
+
+
+def save_backup_check(
+    source_count,
+    backup_count,
+    missing_count,
+    extra_count,
+    changed_count
+):
+    connection = sqlite3.connect("data/app.db")
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        INSERT INTO backup_checks (
+            check_time,
+            source_count,
+            backup_count,
+            missing_count,
+            extra_count,
+            changed_count
+        )
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, (
+        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        source_count,
+        backup_count,
+        missing_count,
+        extra_count,
+        changed_count
+    ))
+
+    connection.commit()
+    connection.close()
+
+def get_backup_checks_count():
+    connection = sqlite3.connect("data/app.db")
+
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT COUNT(*)
+        FROM backup_checks
+    """)
+
+    count = cursor.fetchone()[0]
+
+    connection.close()
+
+    return count

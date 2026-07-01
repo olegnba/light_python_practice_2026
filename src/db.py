@@ -3,7 +3,7 @@ from datetime import datetime
 
 
 def initialize_database():
-    connection = sqlite3.connect("data/app.db")
+    connection = sqlite3.connect("data/app.db")     
     cursor = connection.cursor()
 
     cursor.execute("""
@@ -18,7 +18,7 @@ def initialize_database():
     """)
 
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS backup_checks (
+        CREATE TABLE IF NOT EXISTS backup_checks (      
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             check_time TEXT,
             source_count INTEGER,
@@ -33,7 +33,7 @@ def initialize_database():
     connection.close()
 
 
-def save_files(files_data):
+def save_files(files_data):                                                #очистили files и добавили новые данные
     connection = sqlite3.connect("data/app.db")
     cursor = connection.cursor()
 
@@ -65,9 +65,9 @@ def get_files_count():
     connection = sqlite3.connect("data/app.db")
     cursor = connection.cursor()
 
-    cursor.execute("SELECT COUNT(*) FROM files")
+    cursor.execute("SELECT COUNT(*) FROM files")   #считаем количество записей в files
 
-    count = cursor.fetchone()[0]
+    count = cursor.fetchone()[0]          #извлекаем результат
 
     connection.close()
 
@@ -79,7 +79,7 @@ def find_duplicates():
     cursor = connection.cursor()
 
     cursor.execute("""
-        SELECT file_hash
+        SELECT file_hash      
         FROM files
         GROUP BY file_hash
         HAVING COUNT(*) > 1

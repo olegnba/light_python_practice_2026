@@ -6,33 +6,49 @@ from db import (
     save_files,
     get_files_count,
     find_duplicates,
-    save_backup_check
+    save_backup_check,
+    get_backup_checks_count
 )
 
 from scanner import scan_folder
 from backup_checker import compare_folders
-from db import get_backup_checks_count
 
 
 def main():
 
     if len(sys.argv) < 2:
-        print("Укажите путь к папке.")
+        print("Укажите путь к папке")
         return
 
     folder_path = sys.argv[1]
 
     if not os.path.exists(folder_path):
-        print("Указанная папка не существует.")
+        print("Указанная папка не существует")
         return
 
     if not os.path.isdir(folder_path):
-        print("Указанный путь не является папкой.")
+        print("Указанный путь не является папкой")
         return
+
+    backup_folder = None
+    extension_filter = None
+
+    if len(sys.argv) >= 3:
+
+        if sys.argv[2].startswith("."):
+            extension_filter = sys.argv[2]
+        else:
+            backup_folder = sys.argv[2]
+
+    if len(sys.argv) >= 4:
+        extension_filter = sys.argv[3]
 
     initialize_database()
 
-    files = scan_folder(folder_path)
+    files = scan_folder(
+        folder_path,
+        extension_filter
+    )
 
     save_files(files)
 
@@ -40,6 +56,10 @@ def main():
 
     print(f"В базе данных записей: {count}")
     print(f"Папка найдена: {folder_path}")
+
+    if extension_filter:
+        print(f"Фильтр по расширению: {extension_filter}")
+
     print(f"Найдено файлов: {len(files)}")
     print("Данные успешно сохранены в базу данных.")
 
@@ -62,9 +82,7 @@ def main():
             for file in duplicate["files"]:
                 print(file[0])
 
-    if len(sys.argv) >= 3:
-
-        backup_folder = sys.argv[2]
+    if backup_folder:
 
         if not os.path.exists(backup_folder):
             print("Папка резервной копии не существует.")
@@ -85,7 +103,7 @@ def main():
                 result["changed_count"]
             )
 
-            print()
+    print()
     print(
         f"Записей о проверках: "
         f"{get_backup_checks_count()}"
@@ -99,3 +117,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
